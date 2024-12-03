@@ -51,7 +51,20 @@ export class GameBoard {
 
   moveCharacter(character){
     if (character.shouldMove()){
-      const { nextMovePos ,}
+      const { nextMovePos , direction } = character.getNextMove(
+        this.objectExist
+      );
+      const { classesToRemove , classesToAdd} = character.makeMove();
+    
+      if (character.rotation && nextMovePos !== character.pos){
+        this.rotateDiv(nextMovePos, character.dir.rotation);
+        this.rotateDiv(character.pos, 0);
+      }
+
+      this.removeObject(character.pos,classesToRemove);
+      this.addObject(nextMovePos, classesToAdd);
+
+      character.setNewPos(nextMovePos, direction);
     }
 
   }
