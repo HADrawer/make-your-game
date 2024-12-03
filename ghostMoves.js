@@ -1,6 +1,6 @@
 import { DIRECTIONS , OBJECT_TYPE } from "./setup.js";
 
-export function randomMovemnt(position, direction, objectExist){
+export function randomMovement(position, direction, objectExist){
     let dir = direction;
     let nextMovePos = position + dir.movement;
 

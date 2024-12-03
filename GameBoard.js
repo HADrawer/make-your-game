@@ -52,7 +52,7 @@ export class GameBoard {
   moveCharacter(character){
     if (character.shouldMove()){
       const { nextMovePos , direction } = character.getNextMove(
-        this.objectExist
+        this.objectExist.bind(this)
       );
       const { classesToRemove , classesToAdd} = character.makeMove();
     
