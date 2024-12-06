@@ -18,13 +18,15 @@ const soundGhost = new Audio('./sounds/eat_ghost.wav');
 const gameGrid = document.querySelector('#game');
 const scoreTable = document.querySelector('#score');
 const timerTable = document.querySelector('#timer');
+const livesTable = document.querySelector('#lives')
 const startButton = document.querySelector('#start-button');
 const ResetButton = document.querySelector('#reset-button');
 const pauseButton = document.querySelector('#pause-button');
 
 
 const POWER_PILL_TIME = 10000;
-const GLOBAL_SPEED = 80;
+// const GLOBAL_SPEED = 80;
+const GAME_SPEED = 5;
 const gameBoard = GameBoard.createGameBoard(gameGrid, LEVEL);
 
 let score = 0;
@@ -34,10 +36,18 @@ let gameTimerInterval = null;
 let gameWin = false;
 let powerPillActive = false;
 let powerPillTimer = null;
-
+let livesCount = 3;
 let isPaused = false;
 let pacman = null;
 let ghosts = [];
+
+let lastFrameTime = 0;
+const targetFPS = 60;
+const frameInterval = 1000 / targetFPS;
+let animationFrameId = null;
+
+const FPS = 60;
+
 pauseButton.classList.add('hide');
 ResetButton.classList.add('hide');
 
@@ -59,8 +69,10 @@ function gameOver(pacman, grid){
 
    gameBoard.showGameStatus(gameWin);
    clearInterval(gameTimerInterval);
-   clearInterval(timer);
+//    clearInterval(timer);
+   cancelAnimationFrame(animationFrameId);
 
+   
    startButton.classList.remove('hide');
 
 
@@ -80,62 +92,83 @@ function checkCollision(pacman, ghosts) {
      collidedGhost.pos = collidedGhost.startPos;
      score += 100;
     }else {
+        if (livesCount === 0){
         gameBoard.removeObject(pacman.pos, [OBJECT_TYPE.PACMAN]);
         gameBoard.rotateDiv(pacman.pos, 0);
         gameOver(pacman, gameGrid);
+        }else {
+            livesCount--;
+            gameBoard.removeObject(pacman.pos, [OBJECT_TYPE.PACMAN]);
+            playAudio(soundGhost);
+            pacman.pos = 287
+            
+        }
     }
  }
 }
-
-function gameLoop(pacman, ghosts){
-    
+// function gameLoop(pacman, ghosts)
+function gameLoop(currentTime){ 
     if(!isPaused){
-    
- gameBoard.moveCharacter(pacman);
- checkCollision(pacman, ghosts);
+        animationFrameId = requestAnimationFrame(gameLoop);
 
- ghosts.forEach((ghost) => gameBoard.moveCharacter(ghost));
- checkCollision(pacman, ghosts); 
+        const deltaTime = currentTime - lastFrameTime;
+        
+        if (deltaTime >= frameInterval) {
+            lastFrameTime = currentTime - (deltaTime % frameInterval);
+            if (Math.floor(lastFrameTime/ (GAME_SPEED * frameInterval)) > Math.floor((lastFrameTime - deltaTime)/ (GAME_SPEED *frameInterval))){
 
- if (gameBoard.objectExist(pacman.pos, OBJECT_TYPE.DOT)) {
-    playAudio(soundDot);
-    gameBoard.removeObject(pacman.pos, [OBJECT_TYPE.DOT]);
-    gameBoard.dotCOUNT--;
-    score += 10;
- }
- if (gameBoard.objectExist(pacman.pos, OBJECT_TYPE.PILL)){
-    playAudio(soundPill);
-    gameBoard.removeObject(pacman.pos, [OBJECT_TYPE.PILL]);
-    
-    pacman.powerPill = true;
-    score += 50;
+            
+                gameBoard.moveCharacter(pacman);
+                checkCollision(pacman, ghosts);
 
-    clearTimeout(powerPillTimer);
-    powerPillTimer = setTimeout(
-        () => (pacman.powerPill = false),
-        POWER_PILL_TIME
-    );
- }
+                ghosts.forEach((ghost) => gameBoard.moveCharacter(ghost));
+                checkCollision(pacman, ghosts); 
 
-    if(pacman.powerPill !== powerPillActive) {
-        powerPillActive = pacman.powerPill;
-        ghosts.forEach((ghost) => (ghost.isScared = pacman.powerPill));
-    }
+                if (gameBoard.objectExist(pacman.pos, OBJECT_TYPE.DOT)) {
+                    playAudio(soundDot);
+                    gameBoard.removeObject(pacman.pos, [OBJECT_TYPE.DOT]);
+                    gameBoard.dotCOUNT--;
+                    score += 10;
+                }
+                if (gameBoard.objectExist(pacman.pos, OBJECT_TYPE.PILL)){
+                    playAudio(soundPill);
+                    gameBoard.removeObject(pacman.pos, [OBJECT_TYPE.PILL]);
+                    
+                    pacman.powerPill = true;
+                    score += 50;
 
-    if (gameBoard.dotCOUNT === 0) {
-        gameWin = true;
-        gameOver(pacman, ghosts);
-    }
-    if (gameTimer === 0) {
-        gameOver(pacman, gameGrid);
-    }
+                    clearTimeout(powerPillTimer);
+                    powerPillTimer = setTimeout(
+                        () => (pacman.powerPill = false),
+                        POWER_PILL_TIME
+                    );
+                }
 
-    scoreTable.innerHTML = "Score: " + score;
-    }
+                    if(pacman.powerPill !== powerPillActive) {
+                        powerPillActive = pacman.powerPill;
+                        ghosts.forEach((ghost) => (ghost.isScared = pacman.powerPill));
+                    }
+
+                    if (gameBoard.dotCOUNT === 0) {
+                        gameWin = true;
+                        gameOver(pacman, ghosts);
+                    }
+                    // if (gameTimer === 0) {
+                    //     gameOver(pacman, gameGrid);
+                    // }
+
+            scoreTable.innerHTML = "Score: " + score;
+            timerTable.innerHTML = `Timer: ${gameTimer}`;
+            livesTable.innerHTML = `Lives: ${livesCount}`;
+            }
+
+            const fps = Math.round(1000 / deltaTime);
+            document.getElementById('fps').innerHTML = `FPS: ${fps}`;
+        }
+    }           
 }
 
 function startGame(){
-
     ResetButton.classList.remove('hide');
     pauseButton.classList.remove('hide');
 
@@ -145,6 +178,7 @@ function startGame(){
     powerPillActive = false;
     score = 0;
     gameTimer = 60 ;
+    livesCount = 3;
 
     startButton.classList.add('hide'); 
 
@@ -164,13 +198,20 @@ function startGame(){
         new Ghost(3, 230, randomMovement, OBJECT_TYPE.INKY),
         new Ghost(2, 251, randomMovement, OBJECT_TYPE.CLYDE)
     ];
+    livesTable.innerHTML = `Lives: ${livesCount}`;
 
-    timer = setInterval(() => gameLoop(pacman, ghosts), GLOBAL_SPEED);
+    // timer = setInterval(() => gameLoop(pacman, ghosts), GLOBAL_SPEED);
 
+    lastFrameTime = performance.now();
+    animationFrameId = requestAnimationFrame(gameLoop);
 
     gameTimerInterval = setInterval(() => {
         gameTimer--;
         timerTable.innerHTML = `Timer: ${gameTimer}`;
+        if (gameTimer == 0 ) {
+        clearInterval(gameTimerInterval);
+        gameOver(pacman, gameGrid);
+    }
     }, 1000)
 }
 
@@ -178,7 +219,7 @@ function startGame(){
 startButton.addEventListener('click', startGame);
 
 ResetButton.addEventListener('click', ()=> {
-    clearInterval(timer);
+    cancelAnimationFrame(animationFrameId);
     clearInterval(gameTimerInterval);
     isPaused = false;
     gameOver();
@@ -190,27 +231,28 @@ ResetButton.addEventListener('click', ()=> {
 
 pauseButton.addEventListener('click', () => {
     if (isPaused) {
-        // If the game is currently paused, resume the game
         isPaused = false;
         pauseButton.innerHTML = "Pause Game"; // Change the button text back to "Pause"
-
-        timer = setInterval(()=> gameLoop(pacman, ghosts), GLOBAL_SPEED);
-        gameTimerInterval = setInterval(()=> {
-            gameTimer--;
-            timerTable.innerHTML = `Timer: ${gameTimer}`;
-            if (gameTimer <= 0) {
-                clearInterval(gameTimerInterval);
-                gameOver(pacman, gameGrid);
-            } 
-        },1000);
+        lastFrameTime = performance.now();
+        animationFrameId = requestAnimationFrame(gameLoop);
+        // timer = setInterval(()=> gameLoop(pacman, ghosts), GLOBAL_SPEED);
+        // gameTimerInterval = setInterval(()=> {
+        //     gameTimer--;
+        //     timerTable.innerHTML = `Timer: ${gameTimer}`;
+        //     if (gameTimer <= 0) {
+        //         clearInterval(gameTimerInterval);
+        //         gameOver(pacman, gameGrid);
+        //     } 
+        // },1000);
     } else {
         // If the game is currently running, pause the game
         isPaused = true;
         pauseButton.innerHTML = "Resume Game"; // Change the button text to "Resume"
         
         // Clear the timers to stop the game
-        clearInterval(timer);
-        clearInterval(gameTimerInterval);
+        // clearInterval(timer);
+        // clearInterval(gameTimerInterval);
+        cancelAnimationFrame(animationFrameId);
     }
 });
 
