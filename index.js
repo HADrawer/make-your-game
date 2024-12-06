@@ -66,6 +66,8 @@ function gameOver(pacman, grid){
    document.removeEventListener('ketdown', e =>
      pacman.handleKeyInput(e, gameBoard.objectExist)
    );
+   ResetButton.classList.add('hide');
+
 
    gameBoard.showGameStatus(gameWin);
    clearInterval(gameTimerInterval);
@@ -73,7 +75,6 @@ function gameOver(pacman, grid){
    cancelAnimationFrame(animationFrameId);
 
    
-   startButton.classList.remove('hide');
 
 
 }
@@ -177,7 +178,7 @@ function startGame(){
     gameWin = false;
     powerPillActive = false;
     score = 0;
-    gameTimer = 60 ;
+    gameTimer = 120 ;
     livesCount = 3;
 
     startButton.classList.add('hide'); 
@@ -251,7 +252,7 @@ pauseButton.addEventListener('click', () => {
         
         // Clear the timers to stop the game
         // clearInterval(timer);
-        // clearInterval(gameTimerInterval);
+        clearInterval(gameTimerInterval);
         cancelAnimationFrame(animationFrameId);
     }
 });

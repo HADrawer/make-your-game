@@ -1,7 +1,7 @@
 import { OBJECT_TYPE, DIRECTIONS } from "./setup.js";  
 
 export class Pacman {
-    constructor(speed , startPos) {
+    constructor(speed = 1 , startPos) {
         this.pos = startPos;
         this.speed = speed;
         this.dir = null;
