@@ -42,7 +42,7 @@ body {
   color: white;
   position: absolute;
   top: 10px;
-  left: 100px;
+  left: 130px;
 }
 #timer {
   font-size: 20px;
@@ -60,6 +60,12 @@ body {
 }
 
 #start-button {
+  margin-top: 20px;
+}
+#pause-button{
+  margin-top: 20px;
+}
+#reset-button{
   margin-top: 20px;
 }
 

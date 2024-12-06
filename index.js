@@ -19,39 +19,27 @@ const gameGrid = document.querySelector('#game');
 const scoreTable = document.querySelector('#score');
 const timerTable = document.querySelector('#timer');
 const startButton = document.querySelector('#start-button');
-const stopButton = document.querySelector('#stop-button');
+const ResetButton = document.querySelector('#reset-button');
+const pauseButton = document.querySelector('#pause-button');
 
 
 const POWER_PILL_TIME = 10000;
 const GLOBAL_SPEED = 80;
 const gameBoard = GameBoard.createGameBoard(gameGrid, LEVEL);
 
-const fpsDisplay = document.querySelector('#fps');
 let score = 0;
 let timer = null;
-let frameCount = 0
-let lastFpsTime = 0;
-let gameTimer = 0;
+let gameTimer = 60;
 let gameTimerInterval = null;
 let gameWin = false;
 let powerPillActive = false;
 let powerPillTimer = null;
 
-
-function showFPS(currentTime) {
-    frameCount++;
-    const deltaTime = currentTime - lastFpsTime;
-
-    if (deltaTime >= 1000) {
-        const fps = Math.round((frameCount * 1000)/ deltaTime);
-        fpsDisplay.innerHTML = `FPS: ${fps}`;
-
-        frameCount = 0 ;
-        lastFpsTime = currentTime;
-    }
-
-
-}
+let isPaused = false;
+let pacman = null;
+let ghosts = [];
+pauseButton.classList.add('hide');
+ResetButton.classList.add('hide');
 
 
 function playAudio(audio) {
@@ -70,7 +58,7 @@ function gameOver(pacman, grid){
    );
 
    gameBoard.showGameStatus(gameWin);
-
+   clearInterval(gameTimerInterval);
    clearInterval(timer);
 
    startButton.classList.remove('hide');
@@ -100,6 +88,9 @@ function checkCollision(pacman, ghosts) {
 }
 
 function gameLoop(pacman, ghosts){
+    
+    if(!isPaused){
+    
  gameBoard.moveCharacter(pacman);
  checkCollision(pacman, ghosts);
 
@@ -135,32 +126,39 @@ function gameLoop(pacman, ghosts){
         gameWin = true;
         gameOver(pacman, ghosts);
     }
+    if (gameTimer === 0) {
+        gameOver(pacman, gameGrid);
+    }
 
     scoreTable.innerHTML = "Score: " + score;
-     requestAnimationFrame(showFPS);
+    }
 }
 
 function startGame(){
+
+    ResetButton.classList.remove('hide');
+    pauseButton.classList.remove('hide');
+
 
     playAudio(soundGameStart);
     gameWin = false;
     powerPillActive = false;
     score = 0;
-    gameTimer = 0 ;
+    gameTimer = 60 ;
 
     startButton.classList.add('hide'); 
 
 
     gameBoard.createGrid(LEVEL);
 
-    const pacman = new Pacman(2,287);
+     pacman = new Pacman(2,287);
 
     gameBoard.addObject(287, [OBJECT_TYPE.PACMAN]);
     document.addEventListener('keydown', (e) =>
     pacman.handleKeyInput(e, gameBoard.objectExist.bind(gameBoard))
     );
 
-    const ghosts = [
+     ghosts = [
         new Ghost(5, 188, randomMovement, OBJECT_TYPE.BLINKY),
         new Ghost(4, 209, randomMovement, OBJECT_TYPE.PINKY),
         new Ghost(3, 230, randomMovement, OBJECT_TYPE.INKY),
@@ -171,13 +169,48 @@ function startGame(){
 
 
     gameTimerInterval = setInterval(() => {
-        gameTimer++;
-        timerTable.innerHTML = `Time: ${gameTimer}`;
+        gameTimer--;
+        timerTable.innerHTML = `Timer: ${gameTimer}`;
     }, 1000)
 }
 
 
 startButton.addEventListener('click', startGame);
 
+ResetButton.addEventListener('click', ()=> {
+    clearInterval(timer);
+    clearInterval(gameTimerInterval);
+    isPaused = false;
+    gameOver();
+    timerTable.innerHTML = 'Timer: 60';
+    ResetButton.classList.add('hide');
+    startButton.classList.remove('hide');
+    pauseButton.classList.add('hide');
+});
 
+pauseButton.addEventListener('click', () => {
+    if (isPaused) {
+        // If the game is currently paused, resume the game
+        isPaused = false;
+        pauseButton.innerHTML = "Pause Game"; // Change the button text back to "Pause"
+
+        timer = setInterval(()=> gameLoop(pacman, ghosts), GLOBAL_SPEED);
+        gameTimerInterval = setInterval(()=> {
+            gameTimer--;
+            timerTable.innerHTML = `Timer: ${gameTimer}`;
+            if (gameTimer <= 0) {
+                clearInterval(gameTimerInterval);
+                gameOver(pacman, gameGrid);
+            } 
+        },1000);
+    } else {
+        // If the game is currently running, pause the game
+        isPaused = true;
+        pauseButton.innerHTML = "Resume Game"; // Change the button text to "Resume"
+        
+        // Clear the timers to stop the game
+        clearInterval(timer);
+        clearInterval(gameTimerInterval);
+    }
+});
 
