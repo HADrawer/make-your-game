@@ -19,17 +19,40 @@ const gameGrid = document.querySelector('#game');
 const scoreTable = document.querySelector('#score');
 const timerTable = document.querySelector('#timer');
 const startButton = document.querySelector('#start-button');
+const stopButton = document.querySelector('#stop-button');
+
 
 const POWER_PILL_TIME = 10000;
 const GLOBAL_SPEED = 80;
 const gameBoard = GameBoard.createGameBoard(gameGrid, LEVEL);
 
+const fpsDisplay = document.querySelector('#fps');
 let score = 0;
 let timer = null;
-let gameTime = 0;
+let frameCount = 0
+let lastFpsTime = 0;
+let gameTimer = 0;
+let gameTimerInterval = null;
 let gameWin = false;
 let powerPillActive = false;
 let powerPillTimer = null;
+
+
+function showFPS(currentTime) {
+    frameCount++;
+    const deltaTime = currentTime - lastFpsTime;
+
+    if (deltaTime >= 1000) {
+        const fps = Math.round((frameCount * 1000)/ deltaTime);
+        fpsDisplay.innerHTML = `FPS: ${fps}`;
+
+        frameCount = 0 ;
+        lastFpsTime = currentTime;
+    }
+
+
+}
+
 
 function playAudio(audio) {
 if (audio) {
@@ -114,15 +137,16 @@ function gameLoop(pacman, ghosts){
     }
 
     scoreTable.innerHTML = "Score: " + score;
-    timerTable.innerHTML = "Timer: " + gameTime;
-
+     requestAnimationFrame(showFPS);
 }
 
 function startGame(){
+
     playAudio(soundGameStart);
     gameWin = false;
     powerPillActive = false;
     score = 0;
+    gameTimer = 0 ;
 
     startButton.classList.add('hide'); 
 
@@ -144,7 +168,16 @@ function startGame(){
     ];
 
     timer = setInterval(() => gameLoop(pacman, ghosts), GLOBAL_SPEED);
+
+
+    gameTimerInterval = setInterval(() => {
+        gameTimer++;
+        timerTable.innerHTML = `Time: ${gameTimer}`;
+    }, 1000)
 }
 
 
 startButton.addEventListener('click', startGame);
+
+
+
