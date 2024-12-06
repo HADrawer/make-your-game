@@ -6,8 +6,18 @@ import { GameBoard } from './GameBoard.js';
 import { Pacman } from "./Pacman.js";
 import { Ghost }  from "./Ghost.js";
 
+
+const soundDot = new Audio('./sounds/munch.wav');
+const soundPill = new Audio('./sounds/pill.wav');
+const soundGameStart = new Audio('./sounds/game_start.wav');
+const soundGameOver = new Audio('./sounds/death.wav');
+const soundGhost = new Audio('./sounds/eat_ghost.wav');
+
+
+
 const gameGrid = document.querySelector('#game');
 const scoreTable = document.querySelector('#score');
+const timerTable = document.querySelector('#timer');
 const startButton = document.querySelector('#start-button');
 
 const POWER_PILL_TIME = 10000;
@@ -16,12 +26,22 @@ const gameBoard = GameBoard.createGameBoard(gameGrid, LEVEL);
 
 let score = 0;
 let timer = null;
+let gameTime = 0;
 let gameWin = false;
 let powerPillActive = false;
 let powerPillTimer = null;
 
+function playAudio(audio) {
+if (audio) {
+        audio.play().catch((err) => console.error("Audio playback error:", err));
+    } else {
+        console.error("Audio object is null or undefined.");
+    }   
+}
+
 
 function gameOver(pacman, grid){
+    playAudio(soundGameOver);
    document.removeEventListener('ketdown', e =>
      pacman.handleKeyInput(e, gameBoard.objectExist)
    );
@@ -40,6 +60,7 @@ function checkCollision(pacman, ghosts) {
 
  if(collidedGhost){
     if(pacman.powerPill){
+        playAudio(soundGhost);
      gameBoard.removeObject(collidedGhost.pos, [
         OBJECT_TYPE.GHOST,
         OBJECT_TYPE.SCARED,
@@ -61,9 +82,44 @@ function gameLoop(pacman, ghosts){
 
  ghosts.forEach((ghost) => gameBoard.moveCharacter(ghost));
  checkCollision(pacman, ghosts); 
+
+ if (gameBoard.objectExist(pacman.pos, OBJECT_TYPE.DOT)) {
+    playAudio(soundDot);
+    gameBoard.removeObject(pacman.pos, [OBJECT_TYPE.DOT]);
+    gameBoard.dotCOUNT--;
+    score += 10;
+ }
+ if (gameBoard.objectExist(pacman.pos, OBJECT_TYPE.PILL)){
+    playAudio(soundPill);
+    gameBoard.removeObject(pacman.pos, [OBJECT_TYPE.PILL]);
+    
+    pacman.powerPill = true;
+    score += 50;
+
+    clearTimeout(powerPillTimer);
+    powerPillTimer = setTimeout(
+        () => (pacman.powerPill = false),
+        POWER_PILL_TIME
+    );
+ }
+
+    if(pacman.powerPill !== powerPillActive) {
+        powerPillActive = pacman.powerPill;
+        ghosts.forEach((ghost) => (ghost.isScared = pacman.powerPill));
+    }
+
+    if (gameBoard.dotCOUNT === 0) {
+        gameWin = true;
+        gameOver(pacman, ghosts);
+    }
+
+    scoreTable.innerHTML = "Score: " + score;
+    timerTable.innerHTML = "Timer: " + gameTime;
+
 }
 
 function startGame(){
+    playAudio(soundGameStart);
     gameWin = false;
     powerPillActive = false;
     score = 0;

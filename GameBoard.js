@@ -16,7 +16,7 @@ export class GameBoard {
    }
 
    createGrid(level) {
-    this.dotCount = 0;
+    this.dotCOUNT = 0;
     this.grid = [];
     this.DOMGrid.innerHTML = '';
     this.DOMGrid.style.cssText = `grid-template-columns: repeat(${GRID_SIZE}, ${CELL_SIZE}px)`;
