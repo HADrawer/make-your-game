@@ -66,8 +66,7 @@ function gameOver(pacman, grid){
    document.removeEventListener('ketdown', e =>
      pacman.handleKeyInput(e, gameBoard.objectExist)
    );
-   ResetButton.classList.add('hide');
-
+   pauseButton.classList.add('hide');
 
    gameBoard.showGameStatus(gameWin);
    clearInterval(gameTimerInterval);
@@ -223,11 +222,9 @@ ResetButton.addEventListener('click', ()=> {
     cancelAnimationFrame(animationFrameId);
     clearInterval(gameTimerInterval);
     isPaused = false;
-    gameOver();
+    startGame();
     timerTable.innerHTML = 'Timer: 60';
-    ResetButton.classList.add('hide');
-    startButton.classList.remove('hide');
-    pauseButton.classList.add('hide');
+    pauseButton.classList.remove('hide');
 });
 
 pauseButton.addEventListener('click', () => {
