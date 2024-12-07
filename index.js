@@ -361,6 +361,13 @@ function checkCollision(pacman, ghosts) {
         }else {
             livesCount--;
             gameBoard.removeObject(pacman.pos, [OBJECT_TYPE.PACMAN]);
+            gameBoard.rotateDiv(pacman.pos,0);
+            ghosts.forEach((ghost) => {
+              gameBoard.removeObject(ghost.pos, [OBJECT_TYPE.GHOST, ghost.name]);
+              ghost.pos = ghost.startPos;
+              gameBoard.addObject(ghost.startPos, [OBJECT_TYPE.GHOST, ghost.name]);
+            });
+            
             playAudio(soundGhost);
             pacman.pos = 287
             
@@ -443,7 +450,6 @@ function updateGame() {
 function renderGame() {
   // Update UI elements
   scoreTable.innerHTML = `Score: ${score}`;
-  timerTable.innerHTML = `Timer: ${gameTimer}`;
   livesTable.innerHTML = `Lives: ${livesCount}`;
 }
 
@@ -481,6 +487,8 @@ function startGame() {
 
   gameTimerInterval = setInterval(() => {
     gameTimer--;
+    timerTable.innerHTML = `Timer: ${gameTimer}`;
+
     if (gameTimer <= 0) {
       clearInterval(gameTimerInterval);
       gameOver(pacman, gameGrid);
@@ -519,10 +527,17 @@ pauseButton.addEventListener('click', () => {
         isPaused = false;
         pauseButton.innerHTML = "Pause Game"; // Change the button text back to "Pause"
         lastFrameTime = performance.now();
+        gameTimerInterval = setInterval(()=> {
+              gameTimer--;
+              timerTable.innerHTML = `Timer: ${gameTimer}`;
+              if (gameTimer <= 0) {
+                  clearInterval(gameTimerInterval);
+                  gameOver(pacman, gameGrid);
+              } 
+          },1000);
         animationFrameId = requestAnimationFrame(gameLoop);
        
     } else {
-        // If the game is currently running, pause the game
         isPaused = true;
         pauseButton.innerHTML = "Resume Game"; // Change the button text to "Resume"
         
