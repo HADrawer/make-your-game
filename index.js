@@ -25,7 +25,6 @@ const pauseButton = document.querySelector('#pause-button');
 
 
 const POWER_PILL_TIME = 10000;
-// const GLOBAL_SPEED = 80;
 const GAME_SPEED = 5;
 const gameBoard = GameBoard.createGameBoard(gameGrid, LEVEL);
 
@@ -162,8 +161,8 @@ function gameLoop(currentTime){
             livesTable.innerHTML = `Lives: ${livesCount}`;
             }
 
-            const fps = Math.round(1000 / deltaTime);
-            document.getElementById('fps').innerHTML = `FPS: ${fps}`;
+            // const fps = Math.round(1000 / deltaTime);
+            // document.getElementById('fps').innerHTML = `FPS: ${fps}`;
         }
     }           
 }
@@ -223,7 +222,7 @@ ResetButton.addEventListener('click', ()=> {
     clearInterval(gameTimerInterval);
     isPaused = false;
     startGame();
-    timerTable.innerHTML = 'Timer: 60';
+    timerTable.innerHTML = 'Timer: 120';
     pauseButton.classList.remove('hide');
 });
 
