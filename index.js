@@ -380,7 +380,8 @@ const UPDATE_INTERVAL = 1000 / 60; // 60 FPS
 const FRAME_TIME = 1000 / FPS;
 let accumulatedTime = 0;
 const GAME_SPEED = 3; // Increase this value to slow down the game (e.g., 15 for slower, 30 for even slower)
-
+let frameCount = 0;
+let lastFpsTime = 0;
 function gameLoop(currentTime) {
   if (isPaused) {
     animationFrameId = requestAnimationFrame(gameLoop);
@@ -395,8 +396,19 @@ function gameLoop(currentTime) {
     updateGame();
     accumulatedTime -= FRAME_TIME;
   }
+  frameCount++;
+  if (currentTime - lastFpsTime >= 1000) {
+    const fps = frameCount;
+    document.querySelector('#fps').innerHTML = `FPS: ${fps}`;
+    frameCount = 0;
+    lastFpsTime = currentTime;
+  }
 
-  // Render the game (this happens every frame)
+  while (accumulatedTime >= FRAME_TIME) {
+    updateGame();
+    accumulatedTime -= FRAME_TIME;
+  }
+
   renderGame();
 
   animationFrameId = requestAnimationFrame(gameLoop);

@@ -60,6 +60,15 @@ body {
   left: 10px;
   
 }
+#fps {
+  font-size: 20px;
+  color: white;
+  position: absolute;
+  top: 40px; 
+  left: 130px;
+  
+}
+
 
 #start-button {
   margin-top: 20px;
