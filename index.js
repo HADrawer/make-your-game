@@ -1,3 +1,5 @@
+ 
+ //Basics
  const GRID_SIZE = 20;
  const CELL_SIZE = 20;
  const DIRECTIONS = {
@@ -78,7 +80,7 @@
   ];
 
 
-
+//GameBoard
 
  class GameBoard {
    constructor(DOMGrid){
@@ -157,7 +159,7 @@
 
 
 
-
+//Ghost
 
  class Ghost {
     constructor(speed = 5,  startPos, movement, name){
@@ -204,6 +206,7 @@
     }
 }
 
+//Pacman
 
  class Pacman {
     constructor(speed = 1 , startPos) {
@@ -265,7 +268,7 @@
     }
 }
 
-
+//Algorithms
  function randomMovement(position, direction, objectExist){
     let dir = direction;
     let nextMovePos = position + dir.movement;
